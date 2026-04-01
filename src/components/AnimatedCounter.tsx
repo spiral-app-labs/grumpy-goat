@@ -17,7 +17,7 @@ export default function AnimatedCounter({
   prefix = "",
   decimals = 0,
 }: AnimatedCounterProps) {
-  const [count, setCount] = useState(0);
+  const [count, setCount] = useState(end);
   const ref = useRef<HTMLSpanElement>(null);
   const started = useRef(false);
 
@@ -29,6 +29,7 @@ export default function AnimatedCounter({
       ([entry]) => {
         if (entry.isIntersecting && !started.current) {
           started.current = true;
+          setCount(0);
           const startTime = Date.now();
           const animate = () => {
             const elapsed = Date.now() - startTime;
