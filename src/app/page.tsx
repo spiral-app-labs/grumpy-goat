@@ -8,47 +8,42 @@ import StarRating from "@/components/StarRating";
 
 const reviews = [
   {
-    text: "The cajun food here is seriously underrated. The blackened catfish po'boy is one of the best I've had outside of New Orleans.",
+    text: "Hidden gem at the golf course, best food in Elgin",
     source: "Google Review",
     rating: 5,
   },
   {
-    text: "Best patio in Elgin hands down. Overlooking the golf course with a whiskey flight — doesn't get better than that.",
+    text: "Po'boy Mondays are a MUST",
     source: "Google Review",
     rating: 5,
   },
   {
-    text: "We come here every weekend. The whiskey selection is insane and the staff remembers our names.",
-    source: "Yelp Review",
-    rating: 5,
-  },
-  {
-    text: "Hidden gem! The ribs are fall-off-the-bone and the bourbon pecan pie is a must.",
+    text: "Whiskey selection is insane, over 80 options",
     source: "Google Review",
-    rating: 5,
-  },
-  {
-    text: "Great spot after a round of golf. The jambalaya is loaded and the cocktails are creative.",
-    source: "TripAdvisor",
     rating: 5,
   },
 ];
 
 const featured = [
   {
-    name: "Blackened Catfish Po'Boy",
-    desc: "With cajun slaw and remoulade",
+    name: "Bulleit Bourbon Burger",
+    desc: "$16 — Our signature smash burger with bourbon-glazed onions",
     img: "https://images.unsplash.com/photo-1553621042-f6e147245754?w=600&h=400&fit=crop",
   },
   {
-    name: "Whiskey-Glazed Ribs",
-    desc: "Full or half rack, fall-off-the-bone",
+    name: "Jumbo Lump Crab Cake",
+    desc: "$18 — Pan-seared with remoulade and cajun slaw",
     img: "https://images.unsplash.com/photo-1544025162-d76694265947?w=600&h=400&fit=crop",
   },
   {
-    name: "Shrimp & Grits",
-    desc: "Creole style with andouille sausage",
+    name: "18oz Bone-In Ribeye",
+    desc: "$58 — Hand-cut, seasoned with our Cajun dry rub",
     img: "https://images.unsplash.com/photo-1632778149955-e80f8ceca2e8?w=600&h=400&fit=crop",
+  },
+  {
+    name: "Jambalaya",
+    desc: "$24 — Andouille, shrimp, and chicken in Creole sauce",
+    img: "https://images.unsplash.com/photo-1569529465841-dfecdab7503b?w=600&h=400&fit=crop",
   },
 ];
 
@@ -71,7 +66,7 @@ export default function Home() {
             <span className="text-amber">Whiskey Spirit.</span>
           </h1>
           <p className="text-lg sm:text-xl text-cream/90 mb-8 max-w-2xl mx-auto animate-slide-up">
-            Authentic Southern flavors and 40+ whiskeys overlooking the
+            Authentic Southern flavors and 80+ whiskeys overlooking the
             Highlands of Elgin Golf Course
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center animate-slide-up" style={{ animationDelay: "0.2s" }}>
@@ -111,7 +106,7 @@ export default function Home() {
       <section className="bg-charcoal-dark py-8">
         <div className="max-w-5xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
           {[
-            { end: 40, suffix: "+", label: "Whiskeys" },
+            { end: 80, suffix: "+", label: "Whiskeys" },
             { end: 785, suffix: "", label: "Google Reviews" },
             { end: 4.5, suffix: "", label: "Star Rating", decimals: 1 },
             { end: 15, suffix: "+", label: "Years Serving" },
@@ -204,7 +199,7 @@ export default function Home() {
               </h2>
             </div>
           </ScrollReveal>
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {featured.map((dish, i) => (
               <ScrollReveal key={dish.name} delay={i * 150}>
                 <div className="hover-lift rounded-2xl overflow-hidden bg-charcoal group cursor-pointer">
@@ -254,7 +249,7 @@ export default function Home() {
               The Bar
             </span>
             <h2 className="text-4xl sm:text-5xl font-serif font-bold mt-2 mb-6 text-cream">
-              40+ Whiskeys. Endless Possibilities.
+              80+ Whiskeys. Endless Possibilities.
             </h2>
             <p className="text-cream/80 text-lg mb-8 max-w-2xl mx-auto">
               From small-batch bourbons to single-malt scotches, our curated
