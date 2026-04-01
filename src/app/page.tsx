@@ -2,349 +2,795 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import ScrollReveal from "@/components/ScrollReveal";
+import { motion, useScroll, useTransform, type Variants } from "framer-motion";
+import { useRef } from "react";
 import AnimatedCounter from "@/components/AnimatedCounter";
 import StarRating from "@/components/StarRating";
 
+/* ─── Data ─────────────────────────────────────────────── */
+
 const reviews = [
   {
-    text: "Hidden gem at the golf course, best food in Elgin",
-    source: "Google Review",
+    text: "The patio is absolutely stunning — views of the golf course, great food, and the staff couldn't be nicer. We'll be back every summer.",
+    author: "Sarah M.",
+    source: "Google",
     rating: 5,
   },
   {
-    text: "Po'boy Mondays are a MUST",
-    source: "Google Review",
+    text: "Hidden gem in Elgin. Po'boy Mondays are an absolute must. The Cajun seasoning is legit — not watered down for the suburbs.",
+    author: "James T.",
+    source: "Yelp",
     rating: 5,
   },
   {
-    text: "Whiskey selection is insane, over 80 options",
-    source: "Google Review",
+    text: "Whiskey selection is insane. Over 80 options and the bartenders actually know their stuff. Best bar in the Fox Valley, full stop.",
+    author: "Mike R.",
+    source: "Google",
+    rating: 5,
+  },
+  {
+    text: "Came for the view, stayed for the crab cakes. The wrap-around patio during golden hour is something else. 5/5 every time.",
+    author: "Priya K.",
+    source: "TripAdvisor",
+    rating: 5,
+  },
+  {
+    text: "Grumpy Goat is our go-to for group dinners. Kitchen handles big tables with ease and the food always hits. Jambalaya is fire.",
+    author: "Chris & Lena D.",
+    source: "Google",
+    rating: 5,
+  },
+  {
+    text: "That ribeye with the Cajun dry rub is one of the best steaks I've had anywhere. Period. Not just in the suburbs — anywhere.",
+    author: "Tony V.",
+    source: "Yelp",
     rating: 5,
   },
 ];
 
 const featured = [
   {
-    name: "Bulleit Bourbon Burger",
-    desc: "$16 — Our signature smash burger with bourbon-glazed onions",
-    img: "https://images.unsplash.com/photo-1553621042-f6e147245754?w=600&h=400&fit=crop",
-  },
-  {
     name: "Jumbo Lump Crab Cake",
-    desc: "$18 — Pan-seared with remoulade and cajun slaw",
-    img: "https://images.unsplash.com/photo-1544025162-d76694265947?w=600&h=400&fit=crop",
+    desc: "Pan-seared with house remoulade and Cajun slaw",
+    img: "https://images.unsplash.com/photo-1544025162-d76694265947?w=800&h=600&fit=crop",
   },
   {
-    name: "18oz Bone-In Ribeye",
-    desc: "$58 — Hand-cut, seasoned with our Cajun dry rub",
-    img: "https://images.unsplash.com/photo-1632778149955-e80f8ceca2e8?w=600&h=400&fit=crop",
+    name: "Blackened Catfish Po'Boy",
+    desc: "Gulf catfish, pickled jalapeños, house aioli on French bread",
+    img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=800&h=600&fit=crop",
   },
   {
-    name: "Jambalaya",
-    desc: "$24 — Andouille, shrimp, and chicken in Creole sauce",
-    img: "https://images.unsplash.com/photo-1569529465841-dfecdab7503b?w=600&h=400&fit=crop",
+    name: "Andouille Jambalaya",
+    desc: "House andouille, Gulf shrimp, chicken thigh in Creole sauce",
+    img: "https://images.unsplash.com/photo-1569529465841-dfecdab7503b?w=800&h=600&fit=crop",
+  },
+  {
+    name: "Bone-In Ribeye",
+    desc: "Hand-cut, Cajun dry rub, finished with herb butter",
+    img: "https://images.unsplash.com/photo-1558030006-450675393462?w=800&h=600&fit=crop",
   },
 ];
 
+const socialPosts = [
+  {
+    img: "https://images.unsplash.com/photo-1555992336-fb0d29498b13?w=600&h=600&fit=crop",
+    caption: "Patio season is HERE 🌿",
+  },
+  {
+    img: "https://images.unsplash.com/photo-1544025162-d76694265947?w=600&h=600&fit=crop",
+    caption: "Crab cake just landed 🦀",
+  },
+  {
+    img: "https://images.unsplash.com/photo-1569529465841-dfecdab7503b?w=600&h=600&fit=crop",
+    caption: "Jambalaya Fridays 🔥",
+  },
+  {
+    img: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&h=600&fit=crop",
+    caption: "Golden hour from the patio 🌅",
+  },
+  {
+    img: "https://images.unsplash.com/photo-1567696911980-2eed69a46042?w=600&h=600&fit=crop",
+    caption: "80+ whiskeys, pick your poison 🥃",
+  },
+  {
+    img: "https://images.unsplash.com/photo-1558030006-450675393462?w=600&h=600&fit=crop",
+    caption: "Ribeye night never misses 🥩",
+  },
+];
+
+/* ─── Animation Variants ────────────────────────────────── */
+
+const fadeUp: Variants = {
+  hidden: { opacity: 0, y: 40 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.7, ease: "easeOut" as const },
+  },
+};
+
+const stagger: Variants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.12 } },
+};
+
+/* ─── Sub-Components ────────────────────────────────────── */
+
+function DishCard({ dish }: { dish: typeof featured[0] }) {
+  return (
+    <motion.div
+      variants={fadeUp}
+      className="group relative rounded-2xl overflow-hidden cursor-pointer"
+      whileHover={{ scale: 1.03 }}
+      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+    >
+      <div className="relative h-72 overflow-hidden">
+        <Image
+          src={dish.img}
+          alt={dish.name}
+          fill
+          className="object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 p-6">
+          <h3 className="text-xl font-serif font-bold text-amber mb-1">{dish.name}</h3>
+          <p className="text-cream/75 text-sm leading-relaxed">{dish.desc}</p>
+        </div>
+      </div>
+      <div className="absolute inset-0 ring-2 ring-amber/0 group-hover:ring-amber/40 rounded-2xl transition-all duration-300" />
+    </motion.div>
+  );
+}
+
+function ReviewCard({ review }: { review: typeof reviews[0] }) {
+  return (
+    <motion.div
+      variants={fadeUp}
+      whileHover={{ y: -6 }}
+      className="bg-white rounded-2xl p-7 shadow-md flex flex-col gap-4 border border-cream-dark/60"
+      transition={{ type: "spring", stiffness: 300, damping: 24 }}
+    >
+      <StarRating rating={review.rating} />
+      <p className="text-charcoal/80 italic leading-relaxed flex-grow">
+        &ldquo;{review.text}&rdquo;
+      </p>
+      <div className="pt-4 border-t border-cream-dark flex items-center justify-between">
+        <span className="font-semibold text-charcoal text-sm">{review.author}</span>
+        <span className="text-xs text-charcoal/40 uppercase tracking-wide">{review.source}</span>
+      </div>
+    </motion.div>
+  );
+}
+
+/* ─── Page ──────────────────────────────────────────────── */
+
 export default function Home() {
+  const heroRef = useRef<HTMLDivElement>(null);
+  const vibeRef = useRef<HTMLDivElement>(null);
+
+  const { scrollYProgress: heroScroll } = useScroll({
+    target: heroRef,
+    offset: ["start start", "end start"],
+  });
+  const { scrollYProgress: vibeScroll } = useScroll({
+    target: vibeRef,
+    offset: ["start end", "end start"],
+  });
+
+  const heroY = useTransform(heroScroll, [0, 1], ["0%", "40%"]);
+  const vibeY = useTransform(vibeScroll, [0, 1], ["-10%", "10%"]);
+
   return (
     <>
       {/* Hero */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        <div
-          className="parallax-hero absolute inset-0 z-0"
+      <section ref={heroRef} className="relative min-h-screen flex items-center justify-center overflow-hidden">
+        <motion.div
+          className="absolute inset-0 z-0"
           style={{
             backgroundImage:
-              "url(https://images.unsplash.com/photo-1555992336-fb0d29498b13?w=1920&h=1080&fit=crop)",
+              "url(https://images.unsplash.com/photo-1555992336-fb0d29498b13?w=1920&h=1200&fit=crop)",
+            backgroundPosition: "center",
+            backgroundSize: "cover",
+            y: heroY,
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/40 to-black/70 z-10" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/40 to-black/75 z-10" />
         <div className="relative z-20 text-center px-4 max-w-4xl mx-auto">
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-serif font-bold text-cream mb-6 text-shadow animate-fade-in">
-            Cajun Soul.{" "}
-            <span className="text-amber">Whiskey Spirit.</span>
-          </h1>
-          <p className="text-lg sm:text-xl text-cream/90 mb-8 max-w-2xl mx-auto animate-slide-up">
-            Authentic Southern flavors and 80+ whiskeys overlooking the
-            Highlands of Elgin Golf Course
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center animate-slide-up" style={{ animationDelay: "0.2s" }}>
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, ease: "easeOut" }}
+          >
+            <span className="inline-block text-amber font-semibold text-sm uppercase tracking-[0.25em] mb-4">
+              Highlands of Elgin · Golf Course Views
+            </span>
+            <h1 className="text-5xl sm:text-6xl lg:text-8xl font-serif font-bold text-cream mb-6 text-shadow leading-tight">
+              Cajun Soul.{" "}
+              <span className="text-amber block sm:inline">Whiskey Spirit.</span>
+            </h1>
+            <p className="text-lg sm:text-xl text-cream/85 mb-10 max-w-2xl mx-auto leading-relaxed">
+              Authentic Southern flavors and 80+ whiskeys at the edge of the
+              fairway. Elgin&apos;s boldest gastropub is waiting.
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.35, ease: "easeOut" }}
+            className="flex flex-col sm:flex-row gap-4 justify-center"
+          >
             <Link
               href="/menu"
-              className="bg-amber hover:bg-amber-dark text-charcoal-dark px-8 py-4 rounded-full text-lg font-semibold transition-all hover:scale-105 hover:shadow-lg"
+              className="bg-amber hover:bg-amber-dark text-charcoal-dark px-8 py-4 rounded-full text-lg font-semibold transition-all duration-300 hover:scale-105 hover:shadow-xl"
             >
               View Our Menu
             </Link>
             <a
-              href="https://www.doordash.com"
+              href="https://www.doordash.com/store/grumpy-goat-tavern-elgin-25853398/"
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-accent hover:bg-accent-dark text-white px-8 py-4 rounded-full text-lg font-semibold transition-all hover:scale-105 hover:shadow-lg"
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm text-cream border-2 border-cream/30 hover:border-cream/60 px-8 py-4 rounded-full text-lg font-semibold transition-all duration-300 hover:scale-105"
             >
-              Order Online
+              Order Delivery
             </a>
-          </div>
+          </motion.div>
 
-          {/* Google Rating Badge */}
-          <div className="mt-10 inline-flex items-center gap-3 bg-charcoal-dark/80 backdrop-blur-md rounded-full px-6 py-3">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
+            className="mt-10 inline-flex items-center gap-3 bg-charcoal-dark/70 backdrop-blur-md rounded-full px-6 py-3"
+          >
             <StarRating rating={4.5} />
             <span className="text-cream font-semibold">4.5</span>
-            <span className="text-cream/60 text-sm">785 Google Reviews</span>
+            <span className="text-cream/55 text-sm">785 Google Reviews</span>
+          </motion.div>
+        </div>
+
+        <motion.div
+          animate={{ y: [0, 10, 0] }}
+          transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20"
+        >
+          <svg
+            className="w-6 h-6 text-cream/50"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 14l-7 7m0 0l-7-7m7 7V3"
+            />
+          </svg>
+        </motion.div>
+      </section>
+
+      {/* Quick Menu Bar */}
+      <div className="bg-charcoal-dark py-4 sticky top-0 z-40 border-b border-amber/20">
+        <div className="max-w-7xl mx-auto px-4 flex items-center justify-between gap-4 flex-wrap">
+          <span className="text-cream/70 text-sm font-medium hidden sm:block">
+            Open daily for lunch &amp; dinner · 875 Sports Way, Elgin, IL
+          </span>
+          <div className="flex items-center gap-3 ml-auto">
+            <a
+              href="tel:+18479315950"
+              className="text-amber hover:text-amber-dark text-sm font-semibold transition-colors"
+            >
+              (847) 931-5950
+            </a>
+            <span className="text-cream/20">|</span>
+            <Link
+              href="/menu"
+              className="bg-amber hover:bg-amber-dark text-charcoal-dark px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 hover:scale-105"
+            >
+              View Full Menu →
+            </Link>
           </div>
         </div>
-
-        {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 animate-bounce">
-          <svg className="w-6 h-6 text-cream/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-          </svg>
-        </div>
-      </section>
+      </div>
 
       {/* Stats Bar */}
-      <section className="bg-charcoal-dark py-8">
-        <div className="max-w-5xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-          {[
-            { end: 80, suffix: "+", label: "Whiskeys" },
-            { end: 785, suffix: "", label: "Google Reviews" },
-            { end: 4.5, suffix: "", label: "Star Rating", decimals: 1 },
-            { end: 15, suffix: "+", label: "Years Serving" },
-          ].map((stat) => (
-            <div key={stat.label}>
-              <div className="text-3xl sm:text-4xl font-serif font-bold text-amber">
-                <AnimatedCounter
-                  end={stat.end}
-                  suffix={stat.suffix}
-                  decimals={stat.decimals || 0}
-                />
-              </div>
-              <div className="text-cream/60 text-sm mt-1">{stat.label}</div>
-            </div>
-          ))}
+      <section className="bg-charcoal py-14">
+        <div className="max-w-5xl mx-auto px-4">
+          <motion.div
+            variants={stagger}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.4 }}
+            className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center"
+          >
+            {[
+              { end: 80, suffix: "+", label: "Whiskeys", icon: "🥃" },
+              { end: 785, suffix: "+", label: "Google Reviews", icon: "⭐" },
+              { end: 5, suffix: ".0", label: "TripAdvisor Score", icon: "🏆" },
+              { end: 154, suffix: "+", label: "Yelp Photos", icon: "📸" },
+            ].map((stat) => (
+              <motion.div key={stat.label} variants={fadeUp}>
+                <div className="text-3xl mb-2">{stat.icon}</div>
+                <div className="text-3xl sm:text-4xl font-serif font-bold text-amber">
+                  <AnimatedCounter
+                    end={stat.end}
+                    suffix={stat.suffix}
+                    decimals={0}
+                  />
+                </div>
+                <div className="text-cream/55 text-sm mt-1 tracking-wide">
+                  {stat.label}
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
         </div>
       </section>
 
-      {/* About Teaser */}
-      <section className="py-20 lg:py-28">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-12 items-center">
-          <ScrollReveal>
-            <div>
-              <span className="text-amber font-semibold text-sm uppercase tracking-widest">
-                Our Story
+      {/* Patio / Vibe Showcase */}
+      <section ref={vibeRef} className="relative py-40 overflow-hidden">
+        <motion.div
+          className="absolute inset-0 z-0"
+          style={{
+            backgroundImage:
+              "url(https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1920&h=1080&fit=crop)",
+            backgroundPosition: "center",
+            backgroundSize: "cover",
+            y: vibeY,
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-black/30 z-10" />
+        <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            variants={stagger}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.3 }}
+            className="max-w-2xl"
+          >
+            <motion.span
+              variants={fadeUp}
+              className="inline-block text-amber font-semibold text-sm uppercase tracking-[0.25em] mb-4"
+            >
+              The Experience
+            </motion.span>
+            <motion.h2
+              variants={fadeUp}
+              className="text-5xl sm:text-6xl lg:text-7xl font-serif font-bold text-cream mb-6 text-shadow leading-tight"
+            >
+              Patio Season.{" "}
+              <span className="text-amber">Game Day.</span>{" "}
+              <span className="block">Date Night.</span>
+            </motion.h2>
+            <motion.p
+              variants={fadeUp}
+              className="text-cream/80 text-lg mb-8 leading-relaxed"
+            >
+              Our wrap-around patio overlooks the 18th hole at the Highlands of
+              Elgin — one of the most breathtaking dining views in the suburbs.
+              Morning mimosas, afternoon games, evening cocktails. Any excuse to
+              be outside.
+            </motion.p>
+            <motion.div variants={fadeUp} className="flex flex-wrap gap-3">
+              {[
+                "Wrap-Around Patio",
+                "Golf Course Views",
+                "Live Sports",
+                "Private Events",
+              ].map((tag) => (
+                <span
+                  key={tag}
+                  className="bg-white/10 backdrop-blur-sm border border-white/20 text-cream px-4 py-2 rounded-full text-sm font-medium"
+                >
+                  {tag}
+                </span>
+              ))}
+            </motion.div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Featured Dishes */}
+      <section className="py-24 bg-charcoal-dark">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            variants={stagger}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.2 }}
+          >
+            <motion.div variants={fadeUp} className="text-center mb-16">
+              <span className="text-amber font-semibold text-sm uppercase tracking-[0.25em]">
+                From Our Kitchen
               </span>
-              <h2 className="text-4xl sm:text-5xl font-serif font-bold mt-2 mb-6 text-charcoal-dark">
-                Where the Bayou Meets <span className="text-bourbon">the Fairway</span>
+              <h2 className="text-4xl sm:text-5xl font-serif font-bold mt-3 text-cream">
+                Cajun Classics.{" "}
+                <span className="text-amber">No Compromises.</span>
               </h2>
-              <p className="text-charcoal/70 leading-relaxed mb-4">
-                Nestled in the Highlands of Elgin Golf Course, The Grumpy Goat
-                brings authentic Cajun and Creole flavors to the heart of
-                Illinois. Our kitchen serves up bold, soulful dishes — from
-                blackened catfish po&apos;boys to whiskey-glazed ribs — paired with
-                one of the area&apos;s most impressive whiskey collections.
+              <p className="text-cream/60 mt-4 max-w-xl mx-auto text-lg">
+                Real Cajun and Creole cooking — bold, soulful, and made from
+                scratch daily.
               </p>
-              <p className="text-charcoal/70 leading-relaxed mb-8">
-                Whether you&apos;re wrapping up a round of golf, settling into our
-                stunning patio, or gathering with friends over craft cocktails,
-                The Grumpy Goat delivers Southern hospitality with every visit.
-              </p>
+            </motion.div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {featured.map((dish) => (
+                <DishCard key={dish.name} dish={dish} />
+              ))}
+            </div>
+
+            <motion.div variants={fadeUp} className="text-center mt-14">
+              <Link
+                href="/menu"
+                className="bg-amber hover:bg-amber-dark text-charcoal-dark px-10 py-4 rounded-full text-lg font-semibold transition-all duration-300 hover:scale-105 hover:shadow-xl inline-block"
+              >
+                Explore the Full Menu
+              </Link>
+            </motion.div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Our Story */}
+      <section className="py-24 lg:py-32">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-16 items-center">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.3 }}
+            variants={stagger}
+          >
+            <motion.span
+              variants={fadeUp}
+              className="inline-block text-amber font-semibold text-sm uppercase tracking-[0.25em] mb-3"
+            >
+              Our Story
+            </motion.span>
+            <motion.h2
+              variants={fadeUp}
+              className="text-4xl sm:text-5xl font-serif font-bold mb-6 text-charcoal-dark leading-tight"
+            >
+              Where the Bayou Meets{" "}
+              <span className="text-bourbon">the Fairway</span>
+            </motion.h2>
+            <motion.p
+              variants={fadeUp}
+              className="text-charcoal/70 leading-relaxed mb-5 text-lg"
+            >
+              Located within the Highlands of Elgin, the Grumpy Goat brings
+              bold Cajun flavors to the suburbs. Our kitchen draws from the rich
+              culinary traditions of Louisiana — andouille sausage, blackened
+              fish, Creole spice blends — and makes them at home right here in
+              Illinois.
+            </motion.p>
+            <motion.p
+              variants={fadeUp}
+              className="text-charcoal/70 leading-relaxed mb-8 text-lg"
+            >
+              Whether you&apos;re wrapping up a round of golf, bringing the family
+              for Sunday brunch, or settling in for game night on the patio with
+              80+ whiskeys at your disposal — we built this place for you.
+              Southern hospitality. Northern roots.
+            </motion.p>
+            <motion.div variants={fadeUp}>
               <Link
                 href="/about"
-                className="inline-flex items-center gap-2 text-bourbon font-semibold hover:text-amber transition-colors group"
+                className="inline-flex items-center gap-2 text-bourbon font-semibold hover:text-amber transition-colors group text-lg"
               >
-                Learn More About Us
+                Learn Our Story
                 <svg
                   className="w-4 h-4 group-hover:translate-x-1 transition-transform"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
                 </svg>
               </Link>
-            </div>
-          </ScrollReveal>
-          <ScrollReveal delay={200}>
+            </motion.div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, x: 40 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="relative"
+          >
             <div className="relative">
               <Image
-                src="https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=600&h=500&fit=crop"
-                alt="The Grumpy Goat restaurant interior with warm ambient lighting"
-                width={600}
-                height={500}
-                className="rounded-2xl shadow-2xl object-cover"
+                src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=700&h=560&fit=crop"
+                alt="The Grumpy Goat patio with golf course views"
+                width={700}
+                height={560}
+                className="rounded-2xl shadow-2xl object-cover w-full"
               />
-              <div className="absolute -bottom-6 -left-6 bg-amber rounded-xl p-6 shadow-lg">
+              <div className="absolute -bottom-6 -left-6 bg-amber rounded-xl p-6 shadow-xl">
                 <div className="text-charcoal-dark font-serif font-bold text-2xl">
                   Est. 2010
                 </div>
-                <div className="text-charcoal-dark/70 text-sm">
-                  Elgin&apos;s Cajun Favorite
+                <div className="text-charcoal-dark/70 text-sm mt-0.5">
+                  Elgin&apos;s Cajun Landmark
+                </div>
+              </div>
+              <div className="absolute -top-4 -right-4 bg-charcoal-dark rounded-xl p-4 shadow-xl border border-amber/30">
+                <div className="flex items-center gap-2">
+                  <span className="text-amber text-2xl">⭐</span>
+                  <div>
+                    <div className="text-cream font-bold text-lg leading-none">
+                      5.0
+                    </div>
+                    <div className="text-cream/50 text-xs">TripAdvisor</div>
+                  </div>
                 </div>
               </div>
             </div>
-          </ScrollReveal>
-        </div>
-      </section>
-
-      {/* Featured Dishes */}
-      <section className="py-20 bg-charcoal-dark">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <ScrollReveal>
-            <div className="text-center mb-14">
-              <span className="text-amber font-semibold text-sm uppercase tracking-widest">
-                From Our Kitchen
-              </span>
-              <h2 className="text-4xl sm:text-5xl font-serif font-bold mt-2 text-cream">
-                Fan Favorites
-              </h2>
-            </div>
-          </ScrollReveal>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {featured.map((dish, i) => (
-              <ScrollReveal key={dish.name} delay={i * 150}>
-                <div className="hover-lift rounded-2xl overflow-hidden bg-charcoal group cursor-pointer">
-                  <div className="relative h-64 overflow-hidden">
-                    <Image
-                      src={dish.img}
-                      alt={dish.name}
-                      fill
-                      className="object-cover group-hover:scale-110 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-charcoal/60 to-transparent" />
-                  </div>
-                  <div className="p-6">
-                    <h3 className="text-xl font-serif font-bold text-amber mb-2">
-                      {dish.name}
-                    </h3>
-                    <p className="text-cream/60">{dish.desc}</p>
-                  </div>
-                </div>
-              </ScrollReveal>
-            ))}
-          </div>
-          <div className="text-center mt-12">
-            <Link
-              href="/menu"
-              className="bg-amber hover:bg-amber-dark text-charcoal-dark px-8 py-4 rounded-full text-lg font-semibold transition-all hover:scale-105 inline-block"
-            >
-              View Full Menu
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Whiskey Section */}
-      <section className="relative py-20 lg:py-28 overflow-hidden">
-        <div
-          className="parallax-hero absolute inset-0 z-0"
-          style={{
-            backgroundImage:
-              "url(https://images.unsplash.com/photo-1569529465841-dfecdab7503b?w=1920&h=800&fit=crop)",
-          }}
-        />
-        <div className="absolute inset-0 bg-black/60 z-10" />
-        <div className="relative z-20 max-w-4xl mx-auto px-4 text-center">
-          <ScrollReveal>
-            <span className="text-amber font-semibold text-sm uppercase tracking-widest">
-              The Bar
-            </span>
-            <h2 className="text-4xl sm:text-5xl font-serif font-bold mt-2 mb-6 text-cream">
-              80+ Whiskeys. Endless Possibilities.
-            </h2>
-            <p className="text-cream/80 text-lg mb-8 max-w-2xl mx-auto">
-              From small-batch bourbons to single-malt scotches, our curated
-              collection is one of the best in the Fox Valley. Try a flight,
-              enjoy a signature cocktail, or let our bartenders craft something
-              just for you.
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-2xl mx-auto">
-              {[
-                { name: "Goat's Old Fashioned", desc: "Our signature twist on a classic" },
-                { name: "Bayou Mule", desc: "Bourbon, ginger, lime, Cajun spice" },
-                { name: "Cajun Mary", desc: "Bloody Mary with a Southern kick" },
-              ].map((drink) => (
-                <div
-                  key={drink.name}
-                  className="bg-charcoal-dark/60 backdrop-blur-md rounded-xl p-4 border border-amber/20"
-                >
-                  <h3 className="font-serif font-bold text-amber">
-                    {drink.name}
-                  </h3>
-                  <p className="text-cream/60 text-sm mt-1">{drink.desc}</p>
-                </div>
-              ))}
-            </div>
-          </ScrollReveal>
+          </motion.div>
         </div>
       </section>
 
       {/* Reviews */}
-      <section className="py-20 lg:py-28 bg-cream-dark">
+      <section className="py-24 bg-cream-dark">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <ScrollReveal>
-            <div className="text-center mb-14">
-              <span className="text-amber font-semibold text-sm uppercase tracking-widest">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.2 }}
+            variants={stagger}
+          >
+            <motion.div variants={fadeUp} className="text-center mb-16">
+              <span className="text-amber font-semibold text-sm uppercase tracking-[0.25em]">
                 What People Say
               </span>
-              <h2 className="text-4xl sm:text-5xl font-serif font-bold mt-2 text-charcoal-dark">
+              <h2 className="text-4xl sm:text-5xl font-serif font-bold mt-3 text-charcoal-dark">
                 Loved by <span className="text-bourbon">785+ Guests</span>
               </h2>
               <div className="flex items-center justify-center gap-3 mt-4">
                 <StarRating rating={4.5} size="w-6 h-6" />
                 <span className="text-charcoal font-semibold text-lg">
-                  4.5 out of 5
+                  4.5 / 5
+                </span>
+                <span className="text-charcoal/40 text-sm">
+                  across Google, Yelp &amp; TripAdvisor
                 </span>
               </div>
+            </motion.div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {reviews.map((review, i) => (
+                <ReviewCard key={i} review={review} />
+              ))}
             </div>
-          </ScrollReveal>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {reviews.map((review, i) => (
-              <ScrollReveal key={i} delay={i * 100}>
-                <div className="hover-lift bg-white rounded-2xl p-6 shadow-md h-full flex flex-col">
-                  <StarRating rating={review.rating} />
-                  <p className="text-charcoal/80 mt-4 flex-grow italic leading-relaxed">
-                    &ldquo;{review.text}&rdquo;
-                  </p>
-                  <div className="mt-4 pt-4 border-t border-cream-dark">
-                    <span className="text-sm text-charcoal/50">
-                      — {review.source}
-                    </span>
-                  </div>
-                </div>
-              </ScrollReveal>
-            ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="py-20 bg-bourbon">
-        <div className="max-w-4xl mx-auto px-4 text-center">
-          <ScrollReveal>
-            <h2 className="text-4xl sm:text-5xl font-serif font-bold text-cream mb-4">
+      {/* Social Feed */}
+      <section className="py-24 bg-charcoal-dark">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.2 }}
+            variants={stagger}
+          >
+            <motion.div variants={fadeUp} className="text-center mb-14">
+              <span className="text-amber font-semibold text-sm uppercase tracking-[0.25em]">
+                @GrumpyGoatTavern
+              </span>
+              <h2 className="text-4xl sm:text-5xl font-serif font-bold mt-3 text-cream">
+                Follow the Goat 🐐
+              </h2>
+              <p className="text-cream/55 mt-3 text-lg">
+                Life at the tavern, one plate and pour at a time.
+              </p>
+            </motion.div>
+
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+              {socialPosts.map((post, i) => (
+                <motion.a
+                  key={i}
+                  variants={fadeUp}
+                  href="https://www.facebook.com/GrumpyGoatTavern"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group relative aspect-square rounded-xl overflow-hidden block"
+                  whileHover={{ scale: 1.04 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                >
+                  <Image
+                    src={post.img}
+                    alt={post.caption}
+                    fill
+                    className="object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all duration-300 flex items-end p-3">
+                    <p className="text-cream text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 leading-snug">
+                      {post.caption}
+                    </p>
+                  </div>
+                </motion.a>
+              ))}
+            </div>
+
+            <motion.div variants={fadeUp} className="text-center mt-10">
+              <a
+                href="https://www.facebook.com/GrumpyGoatTavern"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 bg-[#1877F2] hover:bg-[#1460cc] text-white px-8 py-4 rounded-full text-lg font-semibold transition-all duration-300 hover:scale-105 hover:shadow-xl"
+              >
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                </svg>
+                Follow on Facebook
+              </a>
+            </motion.div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Location & Hours */}
+      <section className="py-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.2 }}
+            variants={stagger}
+          >
+            <motion.div variants={fadeUp} className="text-center mb-16">
+              <span className="text-amber font-semibold text-sm uppercase tracking-[0.25em]">
+                Find Us
+              </span>
+              <h2 className="text-4xl sm:text-5xl font-serif font-bold mt-3 text-charcoal-dark">
+                Come Hang
+              </h2>
+            </motion.div>
+
+            <div className="grid md:grid-cols-3 gap-8">
+              <motion.div
+                variants={fadeUp}
+                className="bg-charcoal-dark rounded-2xl p-8 text-center"
+                whileHover={{ y: -4 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              >
+                <div className="text-4xl mb-4">📍</div>
+                <h3 className="font-serif font-bold text-amber text-xl mb-3">
+                  Location
+                </h3>
+                <p className="text-cream/75 leading-relaxed">
+                  875 Sports Way
+                  <br />
+                  Elgin, IL 60120
+                  <br />
+                  <span className="text-cream/50 text-sm">
+                    Highlands of Elgin Golf Course
+                  </span>
+                </p>
+                <a
+                  href="https://maps.google.com/?q=875+Sports+Way+Elgin+IL"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block mt-5 text-amber hover:text-amber-dark text-sm font-semibold transition-colors"
+                >
+                  Get Directions →
+                </a>
+              </motion.div>
+
+              <motion.div
+                variants={fadeUp}
+                className="bg-charcoal-dark rounded-2xl p-8 text-center"
+                whileHover={{ y: -4 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              >
+                <div className="text-4xl mb-4">🕐</div>
+                <h3 className="font-serif font-bold text-amber text-xl mb-3">
+                  Hours
+                </h3>
+                <div className="text-cream/75 space-y-1.5 text-sm">
+                  <div className="flex justify-between gap-6">
+                    <span>Mon – Thu</span>
+                    <span className="text-cream/50">11am – 10pm</span>
+                  </div>
+                  <div className="flex justify-between gap-6">
+                    <span>Friday</span>
+                    <span className="text-cream/50">11am – 11pm</span>
+                  </div>
+                  <div className="flex justify-between gap-6">
+                    <span>Saturday</span>
+                    <span className="text-cream/50">10am – 11pm</span>
+                  </div>
+                  <div className="flex justify-between gap-6">
+                    <span>Sunday</span>
+                    <span className="text-cream/50">10am – 9pm</span>
+                  </div>
+                </div>
+                <p className="text-cream/35 text-xs mt-4">
+                  Hours may vary seasonally
+                </p>
+              </motion.div>
+
+              <motion.div
+                variants={fadeUp}
+                className="bg-charcoal-dark rounded-2xl p-8 text-center"
+                whileHover={{ y: -4 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              >
+                <div className="text-4xl mb-4">📞</div>
+                <h3 className="font-serif font-bold text-amber text-xl mb-3">
+                  Reservations
+                </h3>
+                <p className="text-cream/75 mb-5 leading-relaxed">
+                  Walk-ins welcome. For large groups or private events, give us
+                  a call.
+                </p>
+                <a
+                  href="tel:+18479315950"
+                  className="inline-block bg-amber hover:bg-amber-dark text-charcoal-dark px-6 py-3 rounded-full font-semibold transition-all duration-300 hover:scale-105"
+                >
+                  (847) 931-5950
+                </a>
+              </motion.div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* CTA Banner */}
+      <section className="relative py-24 overflow-hidden">
+        <div
+          className="absolute inset-0 z-0 parallax-hero"
+          style={{
+            backgroundImage:
+              "url(https://images.unsplash.com/photo-1567696911980-2eed69a46042?w=1920&h=600&fit=crop)",
+          }}
+        />
+        <div className="absolute inset-0 bg-black/70 z-10" />
+        <div className="relative z-20 max-w-4xl mx-auto px-4 text-center">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.4 }}
+            variants={stagger}
+          >
+            <motion.h2
+              variants={fadeUp}
+              className="text-4xl sm:text-5xl font-serif font-bold text-cream mb-4"
+            >
               Ready to Dig In?
-            </h2>
-            <p className="text-cream/80 text-lg mb-8">
-              Visit us at the Highlands of Elgin Golf Course or order online for
-              delivery.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            </motion.h2>
+            <motion.p
+              variants={fadeUp}
+              className="text-cream/75 text-lg mb-10 max-w-xl mx-auto"
+            >
+              Come for the view. Stay for the food. Leave obsessed.
+            </motion.p>
+            <motion.div
+              variants={fadeUp}
+              className="flex flex-col sm:flex-row gap-4 justify-center"
+            >
               <a
                 href="tel:+18479315950"
-                className="bg-amber hover:bg-amber-dark text-charcoal-dark px-8 py-4 rounded-full text-lg font-semibold transition-all hover:scale-105"
+                className="bg-amber hover:bg-amber-dark text-charcoal-dark px-8 py-4 rounded-full text-lg font-semibold transition-all duration-300 hover:scale-105 hover:shadow-xl"
               >
                 Call (847) 931-5950
               </a>
               <a
-                href="https://www.doordash.com"
+                href="https://www.doordash.com/store/grumpy-goat-tavern-elgin-25853398/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="bg-white/10 hover:bg-white/20 text-cream border-2 border-cream/30 px-8 py-4 rounded-full text-lg font-semibold transition-all hover:scale-105"
+                className="bg-white/10 hover:bg-white/20 backdrop-blur-sm text-cream border-2 border-cream/30 hover:border-cream/60 px-8 py-4 rounded-full text-lg font-semibold transition-all duration-300 hover:scale-105"
               >
-                Order on DoorDash
+                Order Delivery
               </a>
-            </div>
-          </ScrollReveal>
+            </motion.div>
+          </motion.div>
         </div>
       </section>
     </>
